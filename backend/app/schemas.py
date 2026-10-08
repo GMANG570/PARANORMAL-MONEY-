@@ -28,3 +28,9 @@ class Summary(BaseModel):
     total: float
     count: int
     by_category: list[CategoryTotal]
+
+
+class MonthlyTotal(BaseModel):
+    month: str
+    total: float
+    count: int

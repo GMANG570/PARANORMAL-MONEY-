@@ -13,6 +13,8 @@ export const listTransactions = () => request('/api/transactions')
 
 export const getSummary = () => request('/api/summary')
 
+export const getMonthlySummary = () => request('/api/summary/monthly')
+
 export const createTransaction = (payload) =>
   request('/api/transactions', {
     method: 'POST',

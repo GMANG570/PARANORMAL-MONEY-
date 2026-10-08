@@ -90,6 +90,56 @@ body {
   font-size: 0.85rem;
 }
 
+.chart {
+  margin-bottom: 1rem;
+}
+
+.bars {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  height: 190px;
+  padding-top: 0.35rem;
+}
+
+.bar-slot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.bar-value {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bar-track {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.bar {
+  width: 100%;
+  max-width: 58px;
+  border-radius: 7px 7px 0 0;
+  background: linear-gradient(180deg, var(--accent) 0%, rgba(126, 240, 196, 0.35) 100%);
+}
+
+.bar-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
 .columns {
   display: grid;
   grid-template-columns: minmax(260px, 320px) 1fr;

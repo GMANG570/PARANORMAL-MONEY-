@@ -66,6 +66,20 @@ def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
     return Response(status_code=204)
 
 
+@app.get("/api/summary/monthly", response_model=list[schemas.MonthlyTotal])
+def monthly_summary(db: Session = Depends(get_db)):
+    month = func.to_char(models.Transaction.created_at, "YYYY-MM").label("month")
+    rows = db.execute(
+        select(month, func.sum(models.Transaction.amount), func.count())
+        .group_by(month)
+        .order_by(month)
+    ).all()
+    return [
+        schemas.MonthlyTotal(month=key, total=float(amount), count=int(count))
+        for key, amount, count in rows
+    ]
+
+
 @app.get("/api/summary", response_model=schemas.Summary)
 def summary(db: Session = Depends(get_db)):
     total = db.scalar(select(func.coalesce(func.sum(models.Transaction.amount), 0.0)))
