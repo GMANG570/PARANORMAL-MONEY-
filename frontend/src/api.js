@@ -69,3 +69,10 @@ export const followPageLink = (id, index) =>
     headers: JSON_HEADERS,
     body: JSON.stringify({ index }),
   })
+
+export const sendVoiceCommand = (phrase) =>
+  request('/api/voice/command', {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ phrase }),
+  })

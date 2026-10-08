@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
-from . import agent, models, pageview, schemas
+from . import agent, models, pageview, schemas, voice
 from .db import Base, engine, get_db
 
 # Receipt photos are written here (a compose volume) and streamed back per entry.
@@ -302,6 +302,12 @@ def follow_opportunity_link(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Could not read that page: {exc}") from exc
+
+
+@app.post("/api/voice/command", response_model=schemas.VoiceResult)
+def voice_command(payload: schemas.VoiceCommand):
+    """Understand one spoken sentence: what it means and what to say back."""
+    return voice.interpret(payload.phrase)
 
 
 def _agent_status(db: Session) -> schemas.AgentStatus:

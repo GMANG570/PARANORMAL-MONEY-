@@ -113,3 +113,13 @@ class PageView(BaseModel):
 
 class FollowLink(BaseModel):
     index: int = Field(ge=0)
+
+
+class VoiceCommand(BaseModel):
+    phrase: str = Field(min_length=1, max_length=400)
+
+
+class VoiceResult(BaseModel):
+    intent: str
+    reply: str
+    payload: dict | None = None

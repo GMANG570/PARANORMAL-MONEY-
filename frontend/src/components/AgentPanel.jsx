@@ -29,7 +29,7 @@ function lastRunLine(status) {
   return `No sweep yet · ${cadence}`
 }
 
-export default function AgentPanel({ onError }) {
+export default function AgentPanel({ onError, reloadKey = 0 }) {
   const [status, setStatus] = useState(null)
   const [opportunities, setOpportunities] = useState([])
   const [filter, setFilter] = useState('btc-paypal')
@@ -61,7 +61,7 @@ export default function AgentPanel({ onError }) {
 
   useEffect(() => {
     load(filter, floor)
-  }, [load, filter, floor])
+  }, [load, filter, floor, reloadKey])
 
   const handleScan = async () => {
     setScanning(true)

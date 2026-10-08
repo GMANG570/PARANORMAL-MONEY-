@@ -575,3 +575,18 @@ input[type='file'] {
   font-size: 0.85rem;
   white-space: pre-wrap;
 }
+
+.voice-line {
+  margin: 0.4rem 0 0;
+}
+
+.voice-line strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.voice-note {
+  border-left: 2px solid var(--warning);
+  padding-left: 0.6rem;
+  color: var(--warning);
+}

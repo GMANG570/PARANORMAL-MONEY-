@@ -7,6 +7,7 @@ import IncomeList from './components/IncomeList.jsx'
 import SummaryCards from './components/SummaryCards.jsx'
 import MonthlyChart from './components/MonthlyChart.jsx'
 import AgentPanel from './components/AgentPanel.jsx'
+import VoiceConsole from './components/VoiceConsole.jsx'
 import {
   createIncome,
   createTransaction,
@@ -27,6 +28,7 @@ export default function App() {
   const [months, setMonths] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [agentReload, setAgentReload] = useState(0)
 
   const refresh = useCallback(async () => {
     try {
@@ -109,7 +111,13 @@ export default function App() {
         />
       </div>
 
-      <AgentPanel onError={setError} />
+      <VoiceConsole
+        onRefresh={refresh}
+        onAgentRefresh={() => setAgentReload((count) => count + 1)}
+        onError={setError}
+      />
+
+      <AgentPanel onError={setError} reloadKey={agentReload} />
     </div>
   )
 }

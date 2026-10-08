@@ -61,6 +61,17 @@ docker compose -f docker-compose.base44.yml up -d --build
   buttons that would change something on the other site are listed for you to click
   yourself. It is a structural view (text + controls), not a pixel screenshot: those
   need a headless browser, which this stack does not carry.
+- **Voice** (`backend/app/voice.py`, the "Agent voice" panel on the page) lets you speak
+  your entries instead of typing. The browser does the listening and talking with its own
+  speech engine (`frontend/src/speech.js` — Web Speech API, no keys, nothing installed);
+  the backend only parses the transcript. `POST /api/voice/command {"phrase": "..."}`
+  returns `{intent, reply, payload}` where intent is `expense`, `income`, `scan` or
+  `unknown`, and `payload` is exactly the body the existing `/api/transactions` or
+  `/api/income` endpoint takes — the console posts that itself, so there is one write
+  path per table. Amounts must be spoken as digits ("spent 25 on salt"); the reply is
+  spoken aloud and shown. Listening needs Chrome/Edge/Safari and a microphone permission
+  for the page — in the sandbox preview the mic is usually blocked, so test the parser
+  over HTTP and the click path in a tab where the mic is allowed.
 - **No credentials are needed.** General boards rarely state a payout method, so the
   default list filters to Bitcoin/PayPal (`?payout=btc-paypal`); `?payout=crypto` also
   includes token-denominated rewards (`1 RTC`, `0.5 SOL`) and `?payout=all` shows
@@ -100,6 +111,10 @@ curl -s "localhost:3000/api/opportunities?payout=all&min_floor=500"   # floor fi
 curl -s "localhost:3000/api/opportunities/<id>/screen"                # screen view
 curl -s -X POST "localhost:3000/api/opportunities/<id>/screen/follow" \
   -H 'Content-Type: application/json' -d '{"index":0}'                # follow its link
+curl -s -X POST localhost:3000/api/voice/command \
+  -H 'Content-Type: application/json' -d '{"phrase":"spent 25 on salt"}'
+curl -s -X POST localhost:3000/api/voice/command \
+  -H 'Content-Type: application/json' -d '{"phrase":"received 300 for a bounty, confirmed"}'
 # attach a receipt to an entry (images only), then read it back inline:
 curl -s -X POST localhost:3000/api/transactions/<id>/receipt -F "file=@/tmp/receipt.png"
 curl -s -o /dev/null -w '%{http_code} %{content_type}\n' \
