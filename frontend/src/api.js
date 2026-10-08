@@ -24,3 +24,28 @@ export const createTransaction = (payload) =>
 
 export const deleteTransaction = (id) =>
   request(`/api/transactions/${id}`, { method: 'DELETE' })
+
+export const listIncome = () => request('/api/income')
+
+export const createIncome = (payload) =>
+  request('/api/income', {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify(payload),
+  })
+
+export const deleteIncome = (id) => request(`/api/income/${id}`, { method: 'DELETE' })
+
+export const listOpportunities = (payout = 'btc-paypal') =>
+  request(`/api/opportunities?payout=${encodeURIComponent(payout)}`)
+
+export const updateOpportunity = (id, status) =>
+  request(`/api/opportunities/${id}`, {
+    method: 'PATCH',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ status }),
+  })
+
+export const getAgentStatus = () => request('/api/agent/status')
+
+export const runAgentScan = () => request('/api/agent/scan', { method: 'POST' })

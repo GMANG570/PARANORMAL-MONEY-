@@ -8,6 +8,17 @@ export const CATEGORIES = [
   'Other',
 ]
 
+export const INCOME_CATEGORIES = [
+  'Bounty',
+  'Freelance',
+  'Affiliate',
+  'Referral',
+  'Royalty',
+  'Other',
+]
+
+export const PAYOUT_METHODS = ['Bitcoin', 'PayPal', 'Crypto', 'Bank transfer', 'Other']
+
 const currency = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',

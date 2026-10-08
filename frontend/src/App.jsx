@@ -2,19 +2,26 @@ import { useCallback, useEffect, useState } from 'react'
 
 import TransactionForm from './components/TransactionForm.jsx'
 import TransactionList from './components/TransactionList.jsx'
+import IncomeForm from './components/IncomeForm.jsx'
+import IncomeList from './components/IncomeList.jsx'
 import SummaryCards from './components/SummaryCards.jsx'
 import MonthlyChart from './components/MonthlyChart.jsx'
+import AgentPanel from './components/AgentPanel.jsx'
 import {
+  createIncome,
   createTransaction,
+  deleteIncome,
   deleteTransaction,
   getMonthlySummary,
   getSummary,
+  listIncome,
   listTransactions,
 } from './api.js'
 import './styles.css'
 
 export default function App() {
   const [transactions, setTransactions] = useState([])
+  const [income, setIncome] = useState([])
   const [summary, setSummary] = useState(null)
   const [months, setMonths] = useState([])
   const [error, setError] = useState('')
@@ -22,14 +29,16 @@ export default function App() {
 
   const refresh = useCallback(async () => {
     try {
-      const [entries, totals, monthly] = await Promise.all([
+      const [entries, totals, monthly, earned] = await Promise.all([
         listTransactions(),
         getSummary(),
         getMonthlySummary(),
+        listIncome(),
       ])
       setTransactions(entries)
       setSummary(totals)
       setMonths(monthly)
+      setIncome(earned)
       setError('')
     } catch (err) {
       setError(err.message)
@@ -52,6 +61,16 @@ export default function App() {
     await refresh()
   }
 
+  const handleCreateIncome = async (payload) => {
+    await createIncome(payload)
+    await refresh()
+  }
+
+  const handleDeleteIncome = async (id) => {
+    await deleteIncome(id)
+    await refresh()
+  }
+
   return (
     <div className="page">
       <header className="masthead">
@@ -69,6 +88,16 @@ export default function App() {
       <MonthlyChart months={months} loading={loading} />
 
       <div className="columns">
+        <IncomeForm onSubmit={handleCreateIncome} onError={setError} />
+        <IncomeList
+          income={income}
+          onDelete={handleDeleteIncome}
+          onError={setError}
+          loading={loading}
+        />
+      </div>
+
+      <div className="columns">
         <TransactionForm onSubmit={handleCreate} onError={setError} />
         <TransactionList
           transactions={transactions}
@@ -77,6 +106,8 @@ export default function App() {
           loading={loading}
         />
       </div>
+
+      <AgentPanel onError={setError} />
     </div>
   )
 }

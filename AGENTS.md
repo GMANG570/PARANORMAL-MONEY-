@@ -30,6 +30,24 @@ docker compose -f docker-compose.base44.yml up -d --build
   `.base44/environment.json` is intentionally empty. There is no `/run/base44/app.env`
   wiring because nothing needs it.
 
+## The scout agent (money-in side)
+- `backend/app/agent.py` reads **public** listings — RemoteOK, Arbeitnow, and GitHub's
+  open `label:"bounty"` search — and stores new finds in the `opportunities` table,
+  tagged with how they pay (Bitcoin / PayPal / Crypto). It is **read-only**: it never
+  registers, applies, signs up or logs in anywhere. Nothing in the app creates accounts.
+- It runs as a background asyncio task inside the API process: first sweep ~15s after
+  boot, then every `AGENT_SCAN_INTERVAL_SECONDS` (default `21600` = 6h; `0` disables).
+  `POST /api/agent/scan` runs one on demand. Both paths share `agent.run_scan()`.
+- A sweep re-reads listings it already has and refreshes their payout/budget fields, so
+  detection tweaks reach existing rows — no need to wipe the table.
+- **No credentials are needed.** General boards rarely state a payout method, so the
+  default list filters to Bitcoin/PayPal (`?payout=btc-paypal`); `?payout=crypto` also
+  includes token-denominated rewards (`1 RTC`, `0.5 SOL`) and `?payout=all` shows
+  everything. Payout detection skips negated mentions ("No Stripe/PayPal needed").
+- The `income` and `opportunities` tables are created by `Base.metadata.create_all` at
+  startup — this project has no migration tool, so new columns in existing tables need
+  a `down -v` reset.
+
 ## Sandbox-only overrides (gated on `BASE44_PREVIEW_MODE=1`)
 The preview proxy reaches the dev server through a rotating hostname, which Vite would
 otherwise reject. In `frontend/vite.config.js`, when `BASE44_PREVIEW_MODE === '1'`:
@@ -48,4 +66,14 @@ curl -s localhost:8000/api/transactions    # seeded rows from the API directly
 curl -s localhost:8000/api/summary
 docker compose -f docker-compose.base44.yml ps
 ```
+Money in and the scout agent:
+```bash
+curl -s -X POST localhost:3000/api/agent/scan        # sweep now, returns the report
+curl -s localhost:3000/api/agent/status              # last run, counts, last error
+curl -s "localhost:3000/api/opportunities?payout=all&limit=5"
+curl -s -X POST localhost:3000/api/income -H 'Content-Type: application/json' \
+  -d '{"description":"Bounty payout","category":"Bounty","amount":150,"payout_method":"Bitcoin","status":"confirmed"}'
+```
+A sweep takes ~10-20s (three sources fetched in series) and logs one line per failed
+source in the report's `errors`; a dead source never fails the run.
 Editing `frontend/src/**` should hot-reload; editing `backend/app/**` should restart uvicorn.

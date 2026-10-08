@@ -252,3 +252,162 @@ td {
 .amount {
   font-variant-numeric: tabular-nums;
 }
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.panel-head h2 {
+  margin: 0;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.swatch.spend {
+  background: var(--accent);
+}
+
+.swatch.income {
+  background: #8fb8ff;
+  margin-left: 0.6rem;
+}
+
+.bar-pair {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+  height: 100%;
+}
+
+.bar.income {
+  max-width: 26px;
+  background: linear-gradient(180deg, #8fb8ff 0%, rgba(143, 184, 255, 0.35) 100%);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+button.chip {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+button.chip.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.opportunities {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.opportunities li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0.85rem 0;
+  border-top: 1px solid rgba(42, 51, 80, 0.6);
+}
+
+.opportunity-main {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.opportunity-main a {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.opportunity-main a:hover {
+  color: var(--accent);
+}
+
+.opportunity-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.payout-note {
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.badge + .badge {
+  margin-left: 0.35rem;
+}
+
+.badge.payout.bitcoin {
+  border-color: #6b5320;
+  color: #f7c86b;
+}
+
+.badge.payout.paypal {
+  border-color: #2f4a7a;
+  color: #8fb8ff;
+}
+
+.badge.payout.crypto {
+  border-color: #2e6a56;
+  color: var(--accent);
+}
+
+.badge.confirmed {
+  border-color: #2e6a56;
+  color: var(--accent);
+}
+
+.badge.pending {
+  border-color: #6b5320;
+  color: #f7c86b;
+}
+
+.amount.income-amount {
+  color: var(--accent);
+}
+
+.net-up {
+  color: var(--accent);
+}
+
+.net-down {
+  color: var(--warning);
+}

@@ -32,24 +32,35 @@ function buildSeries(months) {
       key,
       label: MONTH_LABELS[date.getMonth()],
       total: entry?.total ?? 0,
-      count: entry?.count ?? 0,
+      income: entry?.income ?? 0,
     })
   }
 
   return series
 }
 
+const heightFor = (value, peak) => `${Math.max((value / peak) * 100, 1.5)}%`
+
 export default function MonthlyChart({ months, loading }) {
   const series = buildSeries(months)
-  const peak = Math.max(...series.map((entry) => entry.total))
+  const peak = Math.max(...series.map((entry) => Math.max(entry.total, entry.income)))
+  const hasIncome = series.some((entry) => entry.income > 0)
 
   return (
     <section className="panel chart">
-      <h2>Spending by month</h2>
+      <div className="panel-head">
+        <h2>Money out and in, by month</h2>
+        {!loading && peak > 0 && hasIncome && (
+          <p className="legend">
+            <span className="swatch spend" /> out
+            <span className="swatch income" /> in
+          </p>
+        )}
+      </div>
 
       {loading && <p className="hint">Consulting the ledger…</p>}
 
-      {!loading && peak === 0 && <p className="hint">No spending recorded yet.</p>}
+      {!loading && peak === 0 && <p className="hint">No money moved yet.</p>}
 
       {!loading && peak > 0 && (
         <div className="bars">
@@ -59,11 +70,22 @@ export default function MonthlyChart({ months, loading }) {
                 {entry.total > 0 ? formatAmount(entry.total) : '—'}
               </span>
               <div className="bar-track">
-                <div
-                  className="bar"
-                  style={{ height: `${Math.max((entry.total / peak) * 100, 1.5)}%` }}
-                  title={`${entry.label} ${entry.key}: ${formatAmount(entry.total)} across ${entry.count} entries`}
-                />
+                <div className="bar-pair">
+                  {entry.total > 0 && (
+                    <div
+                      className="bar"
+                      style={{ height: heightFor(entry.total, peak) }}
+                      title={`${entry.label}: ${formatAmount(entry.total)} spent`}
+                    />
+                  )}
+                  {entry.income > 0 && (
+                    <div
+                      className="bar income"
+                      style={{ height: heightFor(entry.income, peak) }}
+                      title={`${entry.label}: ${formatAmount(entry.income)} in`}
+                    />
+                  )}
+                </div>
               </div>
               <span className="bar-label">{entry.label}</span>
             </div>
