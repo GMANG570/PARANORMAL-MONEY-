@@ -9,16 +9,7 @@ from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
 from . import agent, models, schemas
-from .db import Base, SessionLocal, engine, get_db
-
-SEED_TRANSACTIONS = [
-    {"description": "Midnight séance deposit", "category": "Séance", "amount": 120.0},
-    {"description": "Backup salt circle", "category": "Salt & Iron", "amount": 34.5},
-    {"description": "Ectoplasm mop rental", "category": "Ectoplasm", "amount": 18.75},
-    {"description": "Cursed amulet (returns accepted)", "category": "Cursed Relics", "amount": 210.0},
-    {"description": "Haunted attic tour, off-peak", "category": "Ghost Tours", "amount": 45.0},
-    {"description": "Emergency exorcism, house call", "category": "Exorcism", "amount": 400.0},
-]
+from .db import Base, engine, get_db
 
 # Receipt photos are written here (a compose volume) and streamed back per entry.
 RECEIPTS_DIR = Path(os.environ.get("RECEIPTS_DIR", "/data/receipts"))
@@ -34,11 +25,6 @@ def _receipt_file(transaction_id: int) -> Path | None:
 async def lifespan(_app: FastAPI):
     Base.metadata.create_all(bind=engine)
     RECEIPTS_DIR.mkdir(parents=True, exist_ok=True)
-    with SessionLocal() as db:
-        empty = db.scalar(select(func.count()).select_from(models.Transaction)) == 0
-        if empty:
-            db.add_all(models.Transaction(**row) for row in SEED_TRANSACTIONS)
-            db.commit()
 
     # The scout agent keeps looking while this process lives; 0 disables it.
     interval = agent.interval_seconds()

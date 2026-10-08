@@ -16,7 +16,7 @@ Then open <http://localhost:3000>. The API is also published on <http://localhos
 (`/api/transactions`, `/api/summary`, `/api/health`); the browser talks to it through
 the Vite dev server's `/api` proxy.
 
-Postgres is seeded with demo entries on first boot. To reset:
+The ledger starts empty — nothing is pre-loaded. To reset the database:
 `docker compose -f docker-compose.base44.yml down -v`.
 
 See `AGENTS.md` for sandbox-specific setup notes.

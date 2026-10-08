@@ -22,8 +22,9 @@ docker compose -f docker-compose.base44.yml up -d --build
   on the host. That is expected — don't `rm -rf` it looking for a stale install.
 - **Python deps resolve at runtime**, so a `requirements.txt` change needs an
   `api` restart (`docker compose -f docker-compose.base44.yml restart api`), not a rebuild.
-- **Postgres is seeded on first boot only**: `app/main.py` creates tables and inserts
-  the demo rows when `transactions` is empty. To start from scratch:
+- **The ledger starts empty**: `app/main.py` only runs `Base.metadata.create_all` at
+  startup — there is no demo seeding, so a fresh database holds no entries and nothing
+  re-appears after a restart. To start from scratch:
   `docker compose -f docker-compose.base44.yml down -v`.
 - **Receipt photos** are stored on their own volume: `RECEIPTS_DIR` (`/data/receipts`)
   holds `<transaction id>.<ext>`, served back by `GET /api/transactions/{id}/receipt`
@@ -75,7 +76,7 @@ the environment.
 ## How to verify
 ```bash
 curl -s localhost:3000/api/health          # {"status":"ok"} — through the Vite proxy
-curl -s localhost:8000/api/transactions    # seeded rows from the API directly
+curl -s localhost:8000/api/transactions    # your own entries (empty on a fresh DB)
 curl -s localhost:8000/api/summary
 docker compose -f docker-compose.base44.yml ps
 ```
