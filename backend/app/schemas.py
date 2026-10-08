@@ -94,3 +94,22 @@ class AgentStatus(BaseModel):
     last_report: dict | None
     last_error: str | None
     stored: dict[str, int]
+
+
+class PageElement(BaseModel):
+    label: str
+    kind: str
+    url: str | None = None
+
+
+class PageView(BaseModel):
+    url: str
+    title: str
+    text: str
+    links: list[PageElement]
+    buttons: list[PageElement]
+    icons: list[PageElement]
+
+
+class FollowLink(BaseModel):
+    index: int = Field(ge=0)

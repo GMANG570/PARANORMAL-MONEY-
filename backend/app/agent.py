@@ -66,7 +66,8 @@ STATUS: dict = {
 }
 
 
-def _fetch(url: str) -> str:
+def fetch_text(url: str) -> str:
+    """Fetch a public page as text — shared by the scout and the screen view."""
     request = Request(
         url,
         headers={
@@ -143,7 +144,7 @@ def _floor(salary: str | None, text: str) -> float | None:
 
 def _remoteok() -> list[dict]:
     listings = []
-    for item in json.loads(_fetch("https://remoteok.com/api")):
+    for item in json.loads(fetch_text("https://remoteok.com/api")):
         if not isinstance(item, dict) or not item.get("position"):
             continue
         listings.append(
@@ -161,7 +162,7 @@ def _remoteok() -> list[dict]:
 
 def _arbeitnow() -> list[dict]:
     listings = []
-    for item in json.loads(_fetch("https://arbeitnow.com/api/job-board-api")).get("data", []):
+    for item in json.loads(fetch_text("https://arbeitnow.com/api/job-board-api")).get("data", []):
         listings.append(
             {
                 "title": f"{str(item.get('title', '')).strip()} — {str(item.get('company_name', '')).strip()}",
@@ -180,7 +181,7 @@ def _github_bounties() -> list[dict]:
         "https://api.github.com/search/issues?q="
         f"{quote('label:\"bounty\" state:open')}&sort=updated&per_page=50"
     )
-    payload = json.loads(_fetch(url))
+    payload = json.loads(fetch_text(url))
     listings = []
     for item in payload.get("items", []):
         labels = " ".join(label.get("name", "") for label in item.get("labels") or [])

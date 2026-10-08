@@ -50,6 +50,17 @@ docker compose -f docker-compose.base44.yml up -d --build
   the first money amount in the body (`$500`, `50$`, `500 usd`). Coin-only rewards
   ("3 RTC") have no floor and read "floor unknown". `?min_floor=500` filters on it, and
   the list comes back highest floor first.
+- **Screen view** (`backend/app/pageview.py`, reached from the "Screen view" button on
+  any listing) reads one page read-only and reports what it shows: the title, an
+  excerpt of the text, and every clickable control it can find — links, buttons and
+  icons. `GET /api/opportunities/{id}/screen` returns that; `POST
+  /api/opportunities/{id}/screen/follow` with `{"index": n}` makes the scout click link
+  *n* from that view and shows where it lands. It only ever fetches the listing's own
+  stored URL and same-site links taken from that view — never a client-supplied URL,
+  never a private host — and it never submits a form, applies, registers or logs in;
+  buttons that would change something on the other site are listed for you to click
+  yourself. It is a structural view (text + controls), not a pixel screenshot: those
+  need a headless browser, which this stack does not carry.
 - **No credentials are needed.** General boards rarely state a payout method, so the
   default list filters to Bitcoin/PayPal (`?payout=btc-paypal`); `?payout=crypto` also
   includes token-denominated rewards (`1 RTC`, `0.5 SOL`) and `?payout=all` shows
@@ -86,6 +97,9 @@ curl -s -X POST localhost:3000/api/agent/scan        # sweep now, returns the re
 curl -s localhost:3000/api/agent/status              # last run, counts, last error
 curl -s "localhost:3000/api/opportunities?payout=all&limit=5"
 curl -s "localhost:3000/api/opportunities?payout=all&min_floor=500"   # floor filter
+curl -s "localhost:3000/api/opportunities/<id>/screen"                # screen view
+curl -s -X POST "localhost:3000/api/opportunities/<id>/screen/follow" \
+  -H 'Content-Type: application/json' -d '{"index":0}'                # follow its link
 # attach a receipt to an entry (images only), then read it back inline:
 curl -s -X POST localhost:3000/api/transactions/<id>/receipt -F "file=@/tmp/receipt.png"
 curl -s -o /dev/null -w '%{http_code} %{content_type}\n' \

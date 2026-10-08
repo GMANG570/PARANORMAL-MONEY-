@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
-from . import agent, models, schemas
+from . import agent, models, pageview, schemas
 from .db import Base, engine, get_db
 
 # Receipt photos are written here (a compose volume) and streamed back per entry.
@@ -269,6 +269,39 @@ def update_opportunity(
     db.commit()
     db.refresh(opportunity)
     return opportunity
+
+
+@app.get("/api/opportunities/{opportunity_id}/screen", response_model=schemas.PageView)
+def opportunity_screen(opportunity_id: int, db: Session = Depends(get_db)):
+    """Screen view of a listing: what it shows and everything clickable on it."""
+    opportunity = db.get(models.Opportunity, opportunity_id)
+    if opportunity is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    try:
+        return pageview.snapshot(opportunity.url)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Could not read that page: {exc}") from exc
+
+
+@app.post(
+    "/api/opportunities/{opportunity_id}/screen/follow",
+    response_model=schemas.PageView,
+)
+def follow_opportunity_link(
+    opportunity_id: int, payload: schemas.FollowLink, db: Session = Depends(get_db)
+):
+    """Have the scout click one of the page's own links and report where it went."""
+    opportunity = db.get(models.Opportunity, opportunity_id)
+    if opportunity is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    try:
+        return pageview.follow(opportunity.url, payload.index)
+    except IndexError as exc:
+        raise HTTPException(status_code=400, detail="The page has no such link") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Could not read that page: {exc}") from exc
 
 
 def _agent_status(db: Session) -> schemas.AgentStatus:

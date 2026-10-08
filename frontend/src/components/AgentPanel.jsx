@@ -7,6 +7,7 @@ import {
   updateOpportunity,
 } from '../api.js'
 import { formatAmount, formatDate } from '../format.js'
+import PageView from './PageView.jsx'
 
 const FILTERS = [
   { id: 'btc-paypal', label: 'Bitcoin & PayPal' },
@@ -34,6 +35,7 @@ export default function AgentPanel({ onError }) {
   const [filter, setFilter] = useState('btc-paypal')
   const [minFloor, setMinFloor] = useState('')
   const [scanning, setScanning] = useState(false)
+  const [viewing, setViewing] = useState(null)
   const [loading, setLoading] = useState(true)
 
   const floor = minFloor === '' ? null : Number(minFloor)
@@ -163,6 +165,9 @@ export default function AgentPanel({ onError }) {
               <span className="badge floor">
                 {item.payout_floor == null ? 'floor unknown' : `floor ${formatAmount(item.payout_floor)}`}
               </span>
+              <button type="button" className="ghost" onClick={() => setViewing(item)}>
+                Screen view
+              </button>
               {item.status === 'shortlisted' ? (
                 <button
                   type="button"
@@ -191,6 +196,14 @@ export default function AgentPanel({ onError }) {
           </li>
         ))}
       </ul>
+
+      {viewing && (
+        <PageView
+          opportunity={viewing}
+          onClose={() => setViewing(null)}
+          onError={onError}
+        />
+      )}
     </section>
   )
 }

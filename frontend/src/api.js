@@ -60,3 +60,12 @@ export const updateOpportunity = (id, status) =>
 export const getAgentStatus = () => request('/api/agent/status')
 
 export const runAgentScan = () => request('/api/agent/scan', { method: 'POST' })
+
+export const getPageView = (id) => request(`/api/opportunities/${id}/screen`)
+
+export const followPageLink = (id, index) =>
+  request(`/api/opportunities/${id}/screen/follow`, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ index }),
+  })
