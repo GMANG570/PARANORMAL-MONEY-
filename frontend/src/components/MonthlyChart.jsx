@@ -33,6 +33,8 @@ function buildSeries(months) {
       label: MONTH_LABELS[date.getMonth()],
       total: entry?.total ?? 0,
       income: entry?.income ?? 0,
+      pending: entry?.income_pending ?? 0,
+      confirmed: entry?.income_confirmed ?? 0,
     })
   }
 
@@ -45,6 +47,7 @@ export default function MonthlyChart({ months, loading }) {
   const series = buildSeries(months)
   const peak = Math.max(...series.map((entry) => Math.max(entry.total, entry.income)))
   const hasIncome = series.some((entry) => entry.income > 0)
+  const hasPending = series.some((entry) => entry.pending > 0)
 
   return (
     <section className="panel chart">
@@ -54,6 +57,11 @@ export default function MonthlyChart({ months, loading }) {
           <p className="legend">
             <span className="swatch spend" /> out
             <span className="swatch income" /> in
+            {hasPending && (
+              <>
+                <span className="swatch pending" /> pending
+              </>
+            )}
           </p>
         )}
       </div>
@@ -82,8 +90,19 @@ export default function MonthlyChart({ months, loading }) {
                     <div
                       className="bar income"
                       style={{ height: heightFor(entry.income, peak) }}
-                      title={`${entry.label}: ${formatAmount(entry.income)} in`}
-                    />
+                      title={`${entry.label}: ${formatAmount(entry.income)} in — ${formatAmount(
+                        entry.confirmed,
+                      )} confirmed, ${formatAmount(entry.pending)} pending`}
+                    >
+                      {entry.pending > 0 && (
+                        <span
+                          className="bar-pending"
+                          style={{
+                            height: `${Math.min((entry.pending / entry.income) * 100, 100)}%`,
+                          }}
+                        />
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

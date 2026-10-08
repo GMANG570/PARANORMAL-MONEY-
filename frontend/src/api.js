@@ -25,6 +25,14 @@ export const createTransaction = (payload) =>
 export const deleteTransaction = (id) =>
   request(`/api/transactions/${id}`, { method: 'DELETE' })
 
+export const uploadReceipt = (id, file) => {
+  const body = new FormData()
+  body.append('file', file)
+  return request(`/api/transactions/${id}/receipt`, { method: 'POST', body })
+}
+
+export const receiptUrl = (id) => `/api/transactions/${id}/receipt`
+
 export const listIncome = () => request('/api/income')
 
 export const createIncome = (payload) =>
@@ -36,8 +44,11 @@ export const createIncome = (payload) =>
 
 export const deleteIncome = (id) => request(`/api/income/${id}`, { method: 'DELETE' })
 
-export const listOpportunities = (payout = 'btc-paypal') =>
-  request(`/api/opportunities?payout=${encodeURIComponent(payout)}`)
+export const listOpportunities = (payout = 'btc-paypal', minFloor = null) => {
+  const params = new URLSearchParams({ payout })
+  if (minFloor) params.set('min_floor', String(minFloor))
+  return request(`/api/opportunities?${params.toString()}`)
+}
 
 export const updateOpportunity = (id, status) =>
   request(`/api/opportunities/${id}`, {

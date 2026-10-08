@@ -1,3 +1,4 @@
+import { receiptUrl } from '../api.js'
 import { formatAmount, formatDate } from '../format.js'
 
 export default function TransactionList({ transactions, onDelete, onError, loading }) {
@@ -36,6 +37,16 @@ export default function TransactionList({ transactions, onDelete, onError, loadi
                 <td>
                   <span className="entry">{entry.description}</span>
                   <span className="date">{formatDate(entry.created_at)}</span>
+                  {entry.receipt_name && (
+                    <a
+                      className="receipt-link"
+                      href={receiptUrl(entry.id)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Receipt
+                    </a>
+                  )}
                 </td>
                 <td>
                   <span className="badge">{entry.category}</span>

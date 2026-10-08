@@ -34,11 +34,14 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://paranormal:paranormal@db:5432/paranormal_money
       PYTHONUNBUFFERED: "1"
+      # Receipt photos live on their own volume so they survive restarts.
+      RECEIPTS_DIR: /data/receipts
       BASE44_PREVIEW_MODE:
       # Bind mounts don't always emit inotify events; poll only in preview mode.
       WATCHFILES_FORCE_POLLING: ${BASE44_PREVIEW_MODE:+1}
     volumes:
       - ./backend:/app
+      - receipts_data:/data/receipts
     ports:
       - "8000:8000"
     depends_on:
@@ -91,3 +94,4 @@ services:
 volumes:
   db_data:
   web_node_modules:
+  receipts_data:

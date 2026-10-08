@@ -16,6 +16,7 @@ class TransactionOut(BaseModel):
     description: str
     category: str
     amount: float
+    receipt_name: str | None = None
     created_at: datetime
 
 
@@ -39,6 +40,8 @@ class MonthlyTotal(BaseModel):
     total: float
     count: int
     income: float
+    income_confirmed: float = 0.0
+    income_pending: float = 0.0
 
 
 class IncomeCreate(BaseModel):
@@ -75,6 +78,7 @@ class OpportunityOut(BaseModel):
     payout_method: str
     payout_text: str | None
     budget_text: str | None
+    payout_floor: float | None = None
     status: str
     discovered_at: datetime
 

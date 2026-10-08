@@ -14,6 +14,8 @@ class Transaction(Base):
     description = Column(String(200), nullable=False)
     category = Column(String(60), nullable=False, default="Other")
     amount = Column(Float, nullable=False)
+    # Original filename of the attached receipt photo; the bytes live in RECEIPTS_DIR.
+    receipt_name = Column(String(240))
     created_at = Column(
         DateTime(timezone=True),
         nullable=False,
@@ -54,6 +56,8 @@ class Opportunity(Base):
     payout_method = Column(String(40), nullable=False, default="Unknown")
     payout_text = Column(String(200))
     budget_text = Column(String(120))
+    # Lowest amount the listing states it pays — the floor to review against.
+    payout_floor = Column(Float)
     status = Column(String(20), nullable=False, default="new")
     discovered_at = Column(
         DateTime(timezone=True),

@@ -6,20 +6,27 @@ export default function TransactionForm({ onSubmit, onError }) {
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState(CATEGORIES[0])
   const [amount, setAmount] = useState('')
+  const [receipt, setReceipt] = useState(null)
   const [saving, setSaving] = useState(false)
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    const form = event.currentTarget
     setSaving(true)
     try {
-      await onSubmit({
-        description: description.trim(),
-        category,
-        amount: Number(amount),
-      })
+      await onSubmit(
+        {
+          description: description.trim(),
+          category,
+          amount: Number(amount),
+        },
+        receipt,
+      )
       setDescription('')
       setAmount('')
       setCategory(CATEGORIES[0])
+      setReceipt(null)
+      form.reset()
       onError('')
     } catch (err) {
       onError(err.message)
@@ -63,6 +70,15 @@ export default function TransactionForm({ onSubmit, onError }) {
           onChange={(event) => setAmount(event.target.value)}
           placeholder="0.00"
           required
+        />
+      </label>
+
+      <label>
+        Receipt photo (optional)
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(event) => setReceipt(event.target.files?.[0] ?? null)}
         />
       </label>
 

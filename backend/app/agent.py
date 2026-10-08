@@ -48,9 +48,13 @@ RELEVANT = re.compile(
     re.I,
 )
 MONEY = re.compile(
-    r"(?:[$€£]\s?\d[\d,]*(?:\.\d+)?|\b\d[\d,]*\s?(?:usd|usdc|usdt|sats|btc|eur)\b)", re.I
+    r"(?:[$€£]\s?\d[\d,]*(?:\.\d+)?"
+    r"|\d[\d,]*(?:\.\d+)?\s?[$€£]"
+    r"|\b\d[\d,]*\s?(?:usd|usdc|usdt|sats|btc|eur)\b)",
+    re.I,
 )
 TAGS = re.compile(r"<[^>]+>")
+NUMBER = re.compile(r"\d[\d,]*(?:\.\d+)?")
 # "no PayPal", "without crypto", "instead of BTC" — a mention that rules the method out.
 NEGATED = re.compile(r"\b(no|not|without|instead of|rather than|don't|do not)\b[^.]{0,24}$", re.I)
 
@@ -108,6 +112,33 @@ def _salary(low, high) -> str | None:
     if low and high and low != high:
         return f"${low:,.0f} – ${high:,.0f}"
     return f"${(low or high):,.0f}"
+
+
+def _amount(text: str | None) -> float | None:
+    if not text:
+        return None
+    match = NUMBER.search(text)
+    if not match:
+        return None
+    try:
+        return float(match.group(0).replace(",", ""))
+    except ValueError:
+        return None
+
+
+def _floor(salary: str | None, text: str) -> float | None:
+    """Lowest amount a listing says it pays — what you review against.
+
+    Quoted salaries win; otherwise the first money amount in the body. Listings
+    whose reward is coin-only ("1 RTC") have no floor we can price.
+    """
+    if salary:
+        parts = [_amount(part) for part in salary.replace("–", "-").split("-")]
+        values = [value for value in parts if value]
+        if values:
+            return min(values)
+    money = MONEY.search(text)
+    return _amount(money.group(0)) if money else None
 
 
 def _remoteok() -> list[dict]:
@@ -212,21 +243,24 @@ def scan(db: Session) -> dict:
             payout_method, payout_text = _payout(text)
             title = str(listing["title"])[:300]
             budget = listing.get("salary") or _budget(text)
+            floor = _floor(listing.get("salary"), text)
 
             known = db.scalar(
                 select(models.Opportunity).where(models.Opportunity.url == url)
             )
             if known:
                 # Re-read listings we already have, so better detection reaches them.
-                if (known.payout_method, known.budget_text, known.title) != (
-                    payout_method,
-                    budget,
-                    title,
-                ):
+                if (
+                    known.payout_method,
+                    known.budget_text,
+                    known.title,
+                    known.payout_floor,
+                ) != (payout_method, budget, title, floor):
                     known.title = title
                     known.payout_method = payout_method
                     known.payout_text = payout_text
                     known.budget_text = budget
+                    known.payout_floor = floor
                     report["refreshed"] += 1
                 else:
                     report["skipped"] += 1
@@ -241,6 +275,7 @@ def scan(db: Session) -> dict:
                     payout_method=payout_method,
                     payout_text=payout_text,
                     budget_text=budget,
+                    payout_floor=floor,
                 )
             )
             report["added"] += 1

@@ -6,7 +6,7 @@ import {
   runAgentScan,
   updateOpportunity,
 } from '../api.js'
-import { formatDate } from '../format.js'
+import { formatAmount, formatDate } from '../format.js'
 
 const FILTERS = [
   { id: 'btc-paypal', label: 'Bitcoin & PayPal' },
@@ -32,15 +32,18 @@ export default function AgentPanel({ onError }) {
   const [status, setStatus] = useState(null)
   const [opportunities, setOpportunities] = useState([])
   const [filter, setFilter] = useState('btc-paypal')
+  const [minFloor, setMinFloor] = useState('')
   const [scanning, setScanning] = useState(false)
   const [loading, setLoading] = useState(true)
 
+  const floor = minFloor === '' ? null : Number(minFloor)
+
   const load = useCallback(
-    async (which) => {
+    async (which, floorAmount) => {
       try {
         const [agentStatus, found] = await Promise.all([
           getAgentStatus(),
-          listOpportunities(which),
+          listOpportunities(which, floorAmount),
         ])
         setStatus(agentStatus)
         setOpportunities(found)
@@ -55,14 +58,14 @@ export default function AgentPanel({ onError }) {
   )
 
   useEffect(() => {
-    load(filter)
-  }, [load, filter])
+    load(filter, floor)
+  }, [load, filter, floor])
 
   const handleScan = async () => {
     setScanning(true)
     try {
       setStatus(await runAgentScan())
-      setOpportunities(await listOpportunities(filter))
+      setOpportunities(await listOpportunities(filter, floor))
       onError('')
     } catch (err) {
       onError(err.message)
@@ -74,7 +77,7 @@ export default function AgentPanel({ onError }) {
   const setOpportunityStatus = async (id, value) => {
     try {
       await updateOpportunity(id, value)
-      setOpportunities(await listOpportunities(filter))
+      setOpportunities(await listOpportunities(filter, floor))
       setStatus(await getAgentStatus())
       onError('')
     } catch (err) {
@@ -114,6 +117,18 @@ export default function AgentPanel({ onError }) {
             {option.label}
           </button>
         ))}
+        <div className="floor-filter">
+          <label htmlFor="floor">min floor (USD)</label>
+          <input
+            id="floor"
+            type="number"
+            min="0"
+            step="50"
+            value={minFloor}
+            placeholder="any"
+            onChange={(event) => setMinFloor(event.target.value)}
+          />
+        </div>
       </div>
 
       {loading && <p className="hint">Waking the scout…</p>}
@@ -144,6 +159,9 @@ export default function AgentPanel({ onError }) {
                 className={`badge payout ${item.payout_method.toLowerCase().replace(/\s+/g, '-')}`}
               >
                 {item.payout_method}
+              </span>
+              <span className="badge floor">
+                {item.payout_floor == null ? 'floor unknown' : `floor ${formatAmount(item.payout_floor)}`}
               </span>
               {item.status === 'shortlisted' ? (
                 <button

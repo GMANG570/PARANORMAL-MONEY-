@@ -16,6 +16,7 @@ import {
   getSummary,
   listIncome,
   listTransactions,
+  uploadReceipt,
 } from './api.js'
 import './styles.css'
 
@@ -51,8 +52,9 @@ export default function App() {
     refresh()
   }, [refresh])
 
-  const handleCreate = async (payload) => {
-    await createTransaction(payload)
+  const handleCreate = async (payload, receipt) => {
+    const created = await createTransaction(payload)
+    if (receipt) await uploadReceipt(created.id, receipt)
     await refresh()
   }
 
