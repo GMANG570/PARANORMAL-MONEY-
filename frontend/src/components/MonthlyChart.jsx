@@ -43,23 +43,57 @@ function buildSeries(months) {
 
 const heightFor = (value, peak) => `${Math.max((value / peak) * 100, 1.5)}%`
 
+const netOf = (entry) => entry.income - entry.total
+
+const signed = (value) => `${value < 0 ? '−' : '+'}${formatAmount(Math.abs(value))}`
+
+// Whole dollars only: the net strip has to stay readable at six columns on a phone.
+const compact = (value) =>
+  `${value < 0 ? '−' : '+'}$${Math.round(Math.abs(value)).toLocaleString('en-US')}`
+
+const netClass = (net) => (net === 0 ? 'even' : net > 0 ? 'up' : 'down')
+
+const moved = (entry) => entry.total > 0 || entry.income > 0
+
 export default function MonthlyChart({ months, loading }) {
   const series = buildSeries(months)
   const peak = Math.max(...series.map((entry) => Math.max(entry.total, entry.income)))
   const hasIncome = series.some((entry) => entry.income > 0)
   const hasPending = series.some((entry) => entry.pending > 0)
 
+  const active = series.filter(moved)
+  const peakNet = Math.max(...series.map((entry) => Math.abs(netOf(entry))), 0)
+  const ranked = [...active].sort((a, b) => netOf(b) - netOf(a))
+  const best = ranked[0]
+  const worst = ranked[ranked.length - 1]
+  const averageNet = active.length
+    ? active.reduce((sum, entry) => sum + netOf(entry), 0) / active.length
+    : 0
+  const thisMonth = series[series.length - 1]
+  const lastMonth = series[series.length - 2]
+  const comparable = moved(thisMonth) && moved(lastMonth)
+  const swing = netOf(thisMonth) - netOf(lastMonth)
+
   return (
     <section className="panel chart">
       <div className="panel-head">
         <h2>Money out and in, by month</h2>
-        {!loading && peak > 0 && hasIncome && (
+        {!loading && peak > 0 && (
           <p className="legend">
             <span className="swatch spend" /> out
-            <span className="swatch income" /> in
+            {hasIncome && (
+              <>
+                <span className="swatch income" /> in
+              </>
+            )}
             {hasPending && (
               <>
                 <span className="swatch pending" /> pending
+              </>
+            )}
+            {peakNet > 0 && (
+              <>
+                <span className="swatch net" /> net
               </>
             )}
           </p>
@@ -110,6 +144,66 @@ export default function MonthlyChart({ months, loading }) {
             </div>
           ))}
         </div>
+      )}
+
+      {!loading && peakNet > 0 && (
+        <>
+          <p className="hint strip-caption">net per month — green earned more, pink spent more</p>
+
+          <div className="net-strip">
+            {series.map((entry) => {
+              const net = netOf(entry)
+              return (
+                <div className="net-cell" key={entry.key}>
+                  <div
+                    className="net-track"
+                    title={`${entry.label}: ${signed(net)} net`}
+                  >
+                    <span className="net-axis" />
+                    {net !== 0 && (
+                      <span
+                        className={`net-bar ${netClass(net)}`}
+                        style={{
+                          width: `${Math.max(
+                            (Math.abs(net) / peakNet) * 50,
+                            3,
+                          )}%`,
+                        }}
+                      />
+                    )}
+                  </div>
+                  <span className={`net-value ${netClass(net)}`}>
+                    {moved(entry) ? compact(net) : '—'}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+
+          {active.length > 0 && (
+            <div className="trend-facts">
+              <p>
+                <span className="hint">best month</span>
+                {best.label} {signed(netOf(best))}
+              </p>
+              <p>
+                <span className="hint">worst month</span>
+                {worst.label} {signed(netOf(worst))}
+              </p>
+              <p>
+                <span className="hint">average net</span>
+                {signed(averageNet)} a month
+              </p>
+              {comparable && (
+                <p>
+                  <span className="hint">vs last month</span>
+                  {swing > 0 ? 'up' : swing < 0 ? 'down' : 'level'}
+                  {swing !== 0 && ` ${formatAmount(Math.abs(swing))}`}
+                </p>
+              )}
+            </div>
+          )}
+        </>
       )}
     </section>
   )

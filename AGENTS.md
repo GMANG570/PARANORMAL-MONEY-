@@ -124,4 +124,11 @@ curl -s -X POST localhost:3000/api/income -H 'Content-Type: application/json' \
 ```
 A sweep takes ~10-20s (three sources fetched in series) and logs one line per failed
 source in the report's `errors`; a dead source never fails the run.
+To exercise the monthly chart (`frontend/src/components/MonthlyChart.jsx`, six-month
+window ending with the current month) with past months, seed income — `IncomeCreate`
+accepts `received_at`, e.g. `{"description":"probe","category":"Bounty","amount":400,
+"payout_method":"Bitcoin","status":"confirmed","received_at":"2026-07-10T12:00:00Z"}`.
+Transactions are always dated server-side (`created_at` defaults to now), so charges can
+only ever land in the current month; delete your own probe rows by the ids the API
+returned when you are done.
 Editing `frontend/src/**` should hot-reload; editing `backend/app/**` should restart uvicorn.
